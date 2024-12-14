@@ -105,15 +105,21 @@ public enum Combination {
         return c > 4 || d > 4 || h > 4 || s > 4;
     }),
     STREET(cards -> {
-        for (int i = 0; i < 7 - 5; i++) {
-            if (cards[i].getNominal() + 1 == cards[i + 1].getNominal() && cards[i + 1].getNominal() + 1 == cards[i + 2].getNominal() && cards[i + 2].getNominal() + 1 == cards[i + 3].getNominal() && cards[i + 3].getNominal() + 1 == cards[i + 4].getNominal()) {
-                return true;
+        List<Card> card = new ArrayList();
+        card.add(cards[0]);
+        for (int i = 0; i < cards.length - 1; i++){
+            for(int j = 1;j < cards.length - i; j++){
+                if(cards[i].getNominal() + 1 == cards[i+ j].getNominal()){
+                    card.add(cards[i+j]);
+                }
             }
         }
+
+        if(card.size() > 4) return true;
         return false;
     }),
     SET(cards -> {
-        for (int i = 0; i < 7 - 3; i++) {
+        for (int i = 0; i < 7 - 2; i++) {
             if (cards[i].getNominal() == cards[i + 1].getNominal() && cards[i + 1].getNominal() == cards[i + 2].getNominal()) {
                 return true;
             }
