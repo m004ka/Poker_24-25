@@ -17,44 +17,26 @@ public class DealerImpl implements Dealer {
         Card[] firstPlayer = new Card[]{deck.getRandomCard(), deck.getRandomCard()};
         Card[] secondPlayer = new Card[]{deck.getRandomCard(), deck.getRandomCard()};
 
-        return new Board(firstPlayer[0].getName() + firstPlayer[1].getName(),
-                secondPlayer[0].getName() + secondPlayer[1].getName(),
-                null,
-                null,
-                null);
+        return new Board(firstPlayer[0].getName() + firstPlayer[1].getName(), secondPlayer[0].getName() + secondPlayer[1].getName(), null, null, null);
     }
 
     @Override
     public Board dealFlop(Board board) {
         Card[] flop = new Card[]{deck.getRandomCard(), deck.getRandomCard(), deck.getRandomCard()};
-        return new Board(board.getPlayerOne(),
-                board.getPlayerTwo(),
-                flop[0].getName() + flop[1].getName() + flop[2].getName(),
-                null,
-                null);
+        return new Board(board.getPlayerOne(), board.getPlayerTwo(), flop[0].getName() + flop[1].getName() + flop[2].getName(), null, null);
 
     }
 
     @Override
     public Board dealTurn(Board board) {
         Card card = deck.getRandomCard();
-        return new Board(board.getPlayerOne(),
-                board.getPlayerTwo(),
-                board.getFlop(),
-                card.getName(),
-                null
-        );
+        return new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), card.getName(), null);
     }
 
     @Override
     public Board dealRiver(Board board) {
         Card card = deck.getRandomCard();
-        return new Board(board.getPlayerOne(),
-                board.getPlayerTwo(),
-                board.getFlop(),
-                board.getTurn(),
-                card.getName()
-        );
+        return new Board(board.getPlayerOne(), board.getPlayerTwo(), board.getFlop(), board.getTurn(), card.getName());
     }
 
     public Card[] parseToCards(Board board, Player player) {
@@ -67,9 +49,7 @@ public class DealerImpl implements Dealer {
         while (matcher.find()) {
             if (iter > 6) throw new InvalidPokerBoardException("На столе больше карт чем нужно");
             var name = matcher.group(1) + matcher.group(2);
-            var card = Stream.of(deck1.getCards()).filter(c -> c.getName().equals(name))
-                    .findFirst()
-                    .orElseThrow(() -> new InvalidPokerBoardException("Не удалось распарсить карту на столе"));
+            var card = Stream.of(deck1.getCards()).filter(c -> c.getName().equals(name)).findFirst().orElseThrow(() -> new InvalidPokerBoardException("Не удалось распарсить карту на столе"));
             if (card.isOnBoard()) throw new InvalidPokerBoardException("Дублирование карт");
             card.setOnBoard(true);
             cards[iter] = card;
@@ -103,8 +83,10 @@ public class DealerImpl implements Dealer {
             throw new InvalidPokerBoardException("Не корректные карты на столе");
         Arrays.sort(cards1);
         Arrays.sort(cards2);
+
         Combination firstPlayerCombo = solverCombination(cards1);
         Combination secondPlayerCombo = solverCombination(cards2);
+
         return result(firstPlayerCombo, secondPlayerCombo, fPlayer, sPlayer);
     }
 
@@ -127,14 +109,18 @@ public class DealerImpl implements Dealer {
         } else if (player1[1].getNominal() < player2[1].getNominal()) {
             res = PokerResult.PLAYER_TWO_WIN;
         }
+        if (player1[1].getNominal() == player2[1].getNominal()) {
+            if (player1[0].getNominal() > player2[0].getNominal()) {
+                res = PokerResult.PLAYER_ONE_WIN;
+            } else if (player1[0].getNominal() < player2[0].getNominal()) {
+                res = PokerResult.PLAYER_TWO_WIN;
+            }
+        }
         return res;
     }
 
     public Combination solverCombination(Card[] cards) {
-        return Arrays.stream(Combination.values())
-                .filter(combination -> combination.verify(cards))
-                .findFirst()
-                .orElse(Combination.HIGH_CARD);
+        return Arrays.stream(Combination.values()).filter(combination -> combination.verify(cards)).findFirst().orElse(Combination.HIGH_CARD);
     }
 }
 

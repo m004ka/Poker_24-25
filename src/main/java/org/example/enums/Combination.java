@@ -39,10 +39,30 @@ public enum Combination {
         return true;
     }),
     STREET_FLASH(cards -> {
-        for (int i = 0; i < 7 - 5; i++) {
-            if ((cards[i].getNominal() + 1 == cards[i + 1].getNominal() && cards[i + 1].getNominal() + 1 == cards[i + 2].getNominal() && cards[i + 2].getNominal() + 1 == cards[i + 3].getNominal() && cards[i + 3].getNominal() + 1 == cards[i + 4].getNominal()) && (cards[i].getSuit() == cards[i + 1].getSuit() && cards[i + 1].getSuit() == cards[i + 2].getSuit() && cards[i + 2].getSuit() == cards[i + 3].getSuit() && cards[i + 3].getSuit() == cards[i + 4].getSuit())) {
-                return true;
-            }
+        Map<Suit, List<Card>> map = new HashMap<>();
+        for (Card card : cards) {
+            var list = map.getOrDefault(card.getSuit(), new ArrayList<>());
+            list.add(card);
+            map.put(card.getSuit(), list);
+        }
+        var optList = map.values()
+                .stream()
+                .filter(l -> l.size() > 4)
+                .findFirst();
+
+        if (optList.isEmpty()) return false;
+        List<Card> parseCard = new ArrayList<Card>(optList.get());
+
+        if (parseCard.size() > 4) {
+            int i = 0;
+            do {
+                if (parseCard.get(i).getNominal() + 1 == parseCard.get(i + 1).getNominal() &&
+                        parseCard.get(i + 1).getNominal() + 1 == parseCard.get(i + 2).getNominal() &&
+                        parseCard.get(i + 2).getNominal() + 1 == parseCard.get(i + 3).getNominal() &&
+                        parseCard.get(i+3).getNominal() + 1 == parseCard.get(i+4).getNominal()) return true;
+                i++;
+
+            } while (i < parseCard.size() - 4);
         }
         return false;
     }),
@@ -107,15 +127,34 @@ public enum Combination {
     STREET(cards -> {
         List<Card> card = new ArrayList();
         card.add(cards[0]);
-        for (int i = 0; i < cards.length - 1; i++){
-            for(int j = 1;j < cards.length - i; j++){
-                if(cards[i].getNominal() + 1 == cards[i+ j].getNominal()){
-                    card.add(cards[i+j]);
+        int iter = 0;
+        for (int i = 0; i < cards.length - 1; i++) {
+            iter = i + 1;
+            for (int j = 1; j < cards.length - i; j++) {
+                if (cards[i].getNominal() + 1 == cards[iter].getNominal()) {
+                    if (iter < cards.length){
+                        if(!card.contains(cards[i])) card.add(cards[i]);
+                        card.add(cards[iter]);
+                    }
                 }
+                iter++;
             }
+
+        }
+        if (card.size() > 4) {
+            int i = 0;
+            do {
+                if (card.get(i).getNominal() + 1 == card.get(i + 1).getNominal() &&
+                        card.get(i + 1).getNominal() + 1 == card.get(i + 2).getNominal() &&
+                        card.get(i + 2).getNominal() + 1 == card.get(i + 3).getNominal() &&
+                        card.get(i+3).getNominal() + 1 == card.get(i+4).getNominal()) return true;
+                i++;
+
+            } while (i < card.size() - 4);
+
+
         }
 
-        if(card.size() > 4) return true;
         return false;
     }),
     SET(cards -> {
