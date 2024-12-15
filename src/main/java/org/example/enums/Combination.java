@@ -51,7 +51,7 @@ public enum Combination {
                 .findFirst();
 
         if (optList.isEmpty()) return false;
-        List<Card> parseCard = new ArrayList<Card>(optList.get());
+        List<Card> parseCard = new ArrayList<>(optList.get());
 
         if (parseCard.size() > 4) {
             int i = 0;
@@ -125,17 +125,16 @@ public enum Combination {
         return c > 4 || d > 4 || h > 4 || s > 4;
     }),
     STREET(cards -> {
-        List<Card> card = new ArrayList();
+        List<Card> card = new ArrayList<>();
         card.add(cards[0]);
-        int iter = 0;
+        int iter;
         for (int i = 0; i < cards.length - 1; i++) {
             iter = i + 1;
             for (int j = 1; j < cards.length - i; j++) {
                 if (cards[i].getNominal() + 1 == cards[iter].getNominal()) {
-                    if (iter < cards.length){
-                        if(!card.contains(cards[i])) card.add(cards[i]);
-                        card.add(cards[iter]);
-                    }
+                    if(!card.contains(cards[i])) card.add(cards[i]);
+                    card.add(cards[iter]);
+
                 }
                 iter++;
             }
