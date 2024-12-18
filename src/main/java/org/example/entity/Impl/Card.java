@@ -11,6 +11,11 @@ public class Card implements Comparable<Card> {
     private final Suit suit;
     private boolean onBoard = false;
 
+    private boolean inComboFirstPlayer;
+    private boolean inComboSecondPlayer;
+    private boolean firstPlayer;
+    private boolean secondPlayer;
+
     public Card(Suit suit, int nominal) {
         this.nominal = nominal;
         this.suit = suit;

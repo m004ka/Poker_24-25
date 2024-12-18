@@ -4,7 +4,10 @@ import org.example.InvalidPokerBoardException;
 import org.example.entity.Dealer;
 import org.example.enums.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -73,9 +76,10 @@ public class DealerImpl implements Dealer {
     public PokerResult decideWinner(Board board) throws InvalidPokerBoardException {
         findErrors(board);
         Card[] cards1 = parseToCards(board, Player.PLAYER_ONE);
+        cards1[0].setFirstPlayer(true);
         Card[] cards2 = parseToCards(board, Player.PLAYER_TWO);
-        Card[] fPlayer = new Card[]{cards1[0], cards1[1]};
-        Card[] sPlayer = new Card[]{cards2[0], cards2[1]};
+        cards2[0].setSecondPlayer(true);
+
 
         if (!Stream.of(cards1).allMatch(Card::isOnBoard))
             throw new InvalidPokerBoardException("Не корректные карты на столе");
@@ -86,8 +90,7 @@ public class DealerImpl implements Dealer {
 
         Combination firstPlayerCombo = solverCombination(cards1);
         Combination secondPlayerCombo = solverCombination(cards2);
-
-        return result(firstPlayerCombo, secondPlayerCombo, fPlayer, sPlayer);
+        return result(firstPlayerCombo, secondPlayerCombo, cards1, cards2);
     }
 
     public PokerResult result(Combination firstCombo, Combination secondCombo, Card[] fPlayer, Card[] sPlayer) {
@@ -95,28 +98,93 @@ public class DealerImpl implements Dealer {
             return PokerResult.PLAYER_ONE_WIN;
         } else if (firstCombo.ordinal() > secondCombo.ordinal()) {
             return PokerResult.PLAYER_TWO_WIN;
-        } else {
+        } else if (firstCombo == Combination.HIGH_CARD && secondCombo == Combination.HIGH_CARD) {
             return solverDraw(fPlayer, sPlayer);
+        } else if (firstCombo == secondCombo) {
+            return solverCombo(fPlayer, sPlayer, firstCombo);
         }
+
+        return PokerResult.DRAW;
     }
 
-    public PokerResult solverDraw(Card[] player1, Card[] player2) {
-        PokerResult res = PokerResult.DRAW;
-        Arrays.sort(player1);
-        Arrays.sort(player2);
-        if (player1[1].getNominal() > player2[1].getNominal()) {
-            res = PokerResult.PLAYER_ONE_WIN;
-        } else if (player1[1].getNominal() < player2[1].getNominal()) {
-            res = PokerResult.PLAYER_TWO_WIN;
+    public PokerResult Full_House_Solver(List<Card> first, List<Card> second) {
+        int setFp = first.get(2).getNominal(), setSp = second.get(2).getNominal(), pairFp, pairSp;
+        if (setFp != setSp) {
+            if (setFp > setSp) return PokerResult.PLAYER_ONE_WIN;
+            return PokerResult.PLAYER_TWO_WIN;
+        } else {
+            if (first.get(0).getNominal() != setFp) {
+                pairFp = first.get(4).getNominal();
+            }
+            pairFp = first.get(0).getNominal();
+            if (second.get(0).getNominal() != setSp) {
+                pairSp = second.get(4).getNominal();
+            }
+            pairSp = second.get(0).getNominal();
+            if (pairFp == pairSp) return PokerResult.DRAW;
+            if (pairFp > pairSp) return PokerResult.PLAYER_ONE_WIN;
+            return PokerResult.PLAYER_TWO_WIN;
         }
-        if (player1[1].getNominal() == player2[1].getNominal()) {
-            if (player1[0].getNominal() > player2[0].getNominal()) {
-                res = PokerResult.PLAYER_ONE_WIN;
-            } else if (player1[0].getNominal() < player2[0].getNominal()) {
-                res = PokerResult.PLAYER_TWO_WIN;
+
+    }
+
+
+    public PokerResult solverCombo(Card[] cards1, Card[] cards2, Combination combination) {
+        if (combination == Combination.FLASH_ROYAL) return PokerResult.DRAW;
+        List<Card> firstPlayer = new ArrayList<Card>();
+        List<Card> secondPlayer = new ArrayList<Card>();
+
+        for (int i = 0; i < 7; i++) {
+            if (cards1[i].isInComboFirstPlayer()) firstPlayer.add(cards1[i]);
+            if (cards2[i].isInComboSecondPlayer()) secondPlayer.add(cards2[i]);
+        }
+        if (combination != Combination.FULL_HOUSE && combination != Combination.TWO_PAIR && combination != Combination.FLASH && combination != Combination.STREET_FLASH) {
+            if (firstPlayer.get(firstPlayer.size() - 1).getNominal() > secondPlayer.get(secondPlayer.size() - 1).getNominal())
+                return PokerResult.PLAYER_ONE_WIN;
+            else if (firstPlayer.get(firstPlayer.size() - 1).getNominal() < secondPlayer.get(secondPlayer.size() - 1).getNominal())
+                return PokerResult.PLAYER_TWO_WIN;
+        } else {
+            if (combination == Combination.TWO_PAIR) {
+                if (firstPlayer.get(3).getNominal() > secondPlayer.get(3).getNominal())
+                    return PokerResult.PLAYER_ONE_WIN;
+                if (firstPlayer.get(3).getNominal() < secondPlayer.get(3).getNominal())
+                    return PokerResult.PLAYER_TWO_WIN;
+                if (firstPlayer.get(0).getNominal() > secondPlayer.get(0).getNominal())
+                    return PokerResult.PLAYER_ONE_WIN;
+                if (firstPlayer.get(0).getNominal() < secondPlayer.get(0).getNominal())
+                    return PokerResult.PLAYER_TWO_WIN;
+            } else if (combination == Combination.FULL_HOUSE) {
+                return Full_House_Solver(firstPlayer, secondPlayer);
             }
         }
-        return res;
+        List<Card> kicker1 = new ArrayList<>();
+        List<Card> kicker2 = new ArrayList<>();
+        for (int i = 6, j = 0; j != 5 - firstPlayer.size(); i--) {
+            if (!cards1[i].isInComboFirstPlayer()) {
+                kicker1.add(cards1[i]);
+                j++;
+            }
+        }
+        for (int i = 6, j = 0; j != 5 - secondPlayer.size(); i--) {
+            if (!cards2[i].isInComboSecondPlayer()) {
+                kicker2.add(cards2[i]);
+                j++;
+            }
+        }
+        for (int i = kicker1.size() - 1; i != -1; i--) {
+            if (kicker1.get(i).getNominal() > kicker2.get(i).getNominal()) return PokerResult.PLAYER_ONE_WIN;
+            if (kicker1.get(i).getNominal() < kicker2.get(i).getNominal()) return PokerResult.PLAYER_TWO_WIN;
+        }
+        return PokerResult.DRAW;
+    }
+
+
+    public PokerResult solverDraw(Card[] player1, Card[] player2) {
+        for (int i = player1.length - 1; i != -1; i--) {
+            if (player1[i].getNominal() > player2[i].getNominal()) return PokerResult.PLAYER_ONE_WIN;
+            if (player1[i].getNominal() < player2[i].getNominal()) return PokerResult.PLAYER_TWO_WIN;
+        }
+        return PokerResult.DRAW;
     }
 
     public Combination solverCombination(Card[] cards) {
