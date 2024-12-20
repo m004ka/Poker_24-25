@@ -7,7 +7,6 @@ import org.example.enums.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -76,9 +75,8 @@ public class DealerImpl implements Dealer {
     public PokerResult decideWinner(Board board) throws InvalidPokerBoardException {
         findErrors(board);
         Card[] cards1 = parseToCards(board, Player.PLAYER_ONE);
-        cards1[0].setFirstPlayer(true);
         Card[] cards2 = parseToCards(board, Player.PLAYER_TWO);
-        cards2[0].setSecondPlayer(true);
+
 
 
         if (!Stream.of(cards1).allMatch(Card::isOnBoard))
@@ -88,8 +86,10 @@ public class DealerImpl implements Dealer {
         Arrays.sort(cards1);
         Arrays.sort(cards2);
 
-        Combination firstPlayerCombo = solverCombination(cards1);
-        Combination secondPlayerCombo = solverCombination(cards2);
+        Combination firstPlayerCombo = solverCombination(cards1, Player.PLAYER_ONE);
+        Combination secondPlayerCombo = solverCombination(cards2, Player.PLAYER_TWO);
+        System.out.println("fp: "+ firstPlayerCombo );
+        System.out.println("sp: " + secondPlayerCombo);
         return result(firstPlayerCombo, secondPlayerCombo, cards1, cards2);
     }
 
@@ -165,30 +165,38 @@ public class DealerImpl implements Dealer {
                 j++;
             }
         }
-        for (int i = 6, j = 0; j != 5 - secondPlayer.size(); i--) {
+        for (int i = 6, j = 0; j < 5 - secondPlayer.size(); i--) {
             if (!cards2[i].isInComboSecondPlayer()) {
                 kicker2.add(cards2[i]);
                 j++;
             }
         }
-        for (int i = kicker1.size() - 1; i != -1; i--) {
-            if (kicker1.get(i).getNominal() > kicker2.get(i).getNominal()) return PokerResult.PLAYER_ONE_WIN;
-            if (kicker1.get(i).getNominal() < kicker2.get(i).getNominal()) return PokerResult.PLAYER_TWO_WIN;
+        if(kicker1.isEmpty() && kicker2.isEmpty()){
+            for (int i = secondPlayer.size() - 1; i != -1; i--) {
+                if (firstPlayer.get(i).getNominal() > secondPlayer.get(i).getNominal()) return PokerResult.PLAYER_ONE_WIN;
+                if (firstPlayer.get(i).getNominal() < secondPlayer.get(i).getNominal()) return PokerResult.PLAYER_TWO_WIN;
+            }
+        }else {
+            for (int i = kicker1.size() - 1; i != -1; i--) {
+                if (kicker1.get(i).getNominal() > kicker2.get(i).getNominal()) return PokerResult.PLAYER_ONE_WIN;
+                if (kicker1.get(i).getNominal() < kicker2.get(i).getNominal()) return PokerResult.PLAYER_TWO_WIN;
+            }
         }
         return PokerResult.DRAW;
     }
 
 
     public PokerResult solverDraw(Card[] player1, Card[] player2) {
-        for (int i = player1.length - 1; i != -1; i--) {
+        for (int i = player1.length - 1 ; i != -1 + 2; i--) {
             if (player1[i].getNominal() > player2[i].getNominal()) return PokerResult.PLAYER_ONE_WIN;
             if (player1[i].getNominal() < player2[i].getNominal()) return PokerResult.PLAYER_TWO_WIN;
         }
         return PokerResult.DRAW;
     }
 
-    public Combination solverCombination(Card[] cards) {
-        return Arrays.stream(Combination.values()).filter(combination -> combination.verify(cards)).findFirst().orElse(Combination.HIGH_CARD);
+    Solver solver = new Solver();
+    public Combination solverCombination(Card[] cards, Player player) {
+        return solver.setCombination(cards, player);
     }
 }
 
