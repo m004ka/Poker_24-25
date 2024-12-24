@@ -261,6 +261,25 @@ public class Solver {
                 result = true;
             }
         }
+        int iter = 0;
+        for(int i = cards.length - 1; i > 0; i--){
+
+            if(player == Player.PLAYER_ONE){
+                if(cards[i].isInComboFirstPlayer() && iter < 4) {
+                    iter++;
+                }else if(cards[i].isInComboFirstPlayer() && iter > 3) {
+                    cards[i].setInComboFirstPlayer(false);
+                    iter++;
+                }
+            }else if(player == Player.PLAYER_TWO){
+                if(cards[i].isInComboSecondPlayer() && iter < 4) {
+                    iter++;
+                }else if(cards[i].isInComboSecondPlayer() && iter > 3) {
+                    cards[i].setInComboSecondPlayer(false);
+                    iter++;
+                }
+            }
+        }
         return result;
     }
 
