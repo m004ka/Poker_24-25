@@ -88,8 +88,6 @@ public class DealerImpl implements Dealer {
 
         Combination firstPlayerCombo = solverCombination(cards1, Player.PLAYER_ONE);
         Combination secondPlayerCombo = solverCombination(cards2, Player.PLAYER_TWO);
-        System.out.println("fp: "+ firstPlayerCombo );
-        System.out.println("sp: " + secondPlayerCombo);
         return result(firstPlayerCombo, secondPlayerCombo, cards1, cards2);
     }
 
