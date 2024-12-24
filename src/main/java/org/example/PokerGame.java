@@ -11,7 +11,7 @@ public class PokerGame {
 //        board = dealer.dealFlop(board);
 //        board = dealer.dealTurn(board);
 //        board = dealer.dealRiver(board);
-        Board board = new Board("10S2S", "10DKH", "4S3S6S", "5S", "AH");
+        Board board = new Board( "QHJC", "6D7S", "8H8S9H", "9S", "AH");
         System.out.println(board);
         System.out.println(dealer.decideWinner(board));
     }

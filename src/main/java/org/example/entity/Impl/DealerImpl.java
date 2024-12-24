@@ -85,6 +85,18 @@ public class DealerImpl implements Dealer {
             throw new InvalidPokerBoardException("Не корректные карты на столе");
         Arrays.sort(cards1);
         Arrays.sort(cards2);
+        System.out.print("Player One: ");
+        for(Card card : cards1){
+            System.out.print(card.getName() + " ");
+        }
+        System.out.println(
+
+        );
+        System.out.print("Player Two: ");
+        for(Card card : cards2){
+            System.out.print(card.getName() + " ");
+        }
+        System.out.println();
 
         Combination firstPlayerCombo = solverCombination(cards1, Player.PLAYER_ONE);
         Combination secondPlayerCombo = solverCombination(cards2, Player.PLAYER_TWO);
