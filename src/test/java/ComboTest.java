@@ -198,10 +198,17 @@ public class ComboTest {
     }
     @Test
     void ElderCardDRAW1() {
-        Board board = new Board("4D5D", "5H4H", "QSKSAH", "7D", "9C");
+        Board board = new Board("4D5D", "5H4H", "QSKSAH", "7D", "2C");
         PokerResult result = dealer.decideWinner(board);
         System.out.println(result);
         assertEquals(result, PokerResult.DRAW);
+    }
+    @Test
+    void ElderCardVSPair() {
+        Board board = new Board("AHKS", "QHQS", "10H8D3H", "7D", "2C");
+        PokerResult result = dealer.decideWinner(board);
+        System.out.println(result);
+        assertEquals(result, PokerResult.PLAYER_TWO_WIN);
     }
 
 
