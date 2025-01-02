@@ -33,10 +33,7 @@ public class Solver {
             map.put(card.getSuit(), list);
         }
 
-        var optList = map.values()
-                .stream()
-                .filter(l -> l.size() > 4)
-                .findFirst();
+        var optList = map.values().stream().filter(l -> l.size() > 4).findFirst();
 
         if (optList.isEmpty()) return false;
 
@@ -45,11 +42,7 @@ public class Solver {
         List<Card> parseCard = new ArrayList<>(optList.get());
         int i = 0;
         do {
-            if (parseCard.get(i).getNominal() == 10 &&
-                    parseCard.get(i + 1).getNominal() == 11 &&
-                    parseCard.get(i + 2).getNominal() == 12 &&
-                    parseCard.get(i + 3).getNominal() == 13 &&
-                    parseCard.get(i + 4).getNominal() == 14) {
+            if (parseCard.get(i).getNominal() == 10 && parseCard.get(i + 1).getNominal() == 11 && parseCard.get(i + 2).getNominal() == 12 && parseCard.get(i + 3).getNominal() == 13 && parseCard.get(i + 4).getNominal() == 14) {
                 for (int j = i; j < i + 4; j++) {
                     if (player == Player.PLAYER_ONE) {
                         cards[j].setInComboFirstPlayer(true);
@@ -72,15 +65,12 @@ public class Solver {
             list.add(card);
             map.put(card.getSuit(), list);
         }
-        var optList = map.values()
-                .stream()
-                .filter(l -> l.size() > 4)
-                .findFirst();
+        var optList = map.values().stream().filter(l -> l.size() > 4).findFirst();
 
         if (optList.isEmpty()) return false;
         List<Card> parseCard = new ArrayList<>(optList.get());
         Card[] parse = parseCard.toArray(new Card[0]);
-        if(isFlash(parse, player)) return true;
+        if (isFlash(parse, player)) return true;
         return false;
     }
 
@@ -156,10 +146,7 @@ public class Solver {
             map.put(card.getSuit(), list);
         }
 
-        var optList = map.values()
-                .stream()
-                .filter(l -> l.size() > 4)
-                .findFirst();
+        var optList = map.values().stream().filter(l -> l.size() > 4).findFirst();
         ArrayList<Card> cardList = new ArrayList<>();
         if (optList.isPresent()) {
             cardList.addAll(optList.get());
@@ -191,32 +178,48 @@ public class Solver {
             }
         }
 
-        if (newCards.size() >= 5) {
-            Arrays.sort(newCards.toArray(new Card[0]), Comparator.comparingInt(Card::getNominal));
+        if (newCards.size() < 5) {
+            return false;
+        }
+        newCards.sort(Comparator.comparingInt(Card::getNominal));
+        List<List<Card>> possibleStreets = new ArrayList<>();
 
-            for (int i = 0; i <= newCards.size() - 5; i++) {
-                boolean isStreet = true;
-                for (int j = 1; j < 5; j++) {
-                    if (newCards.get(i + j).getNominal() != newCards.get(i + j - 1).getNominal() + 1) {
-                        isStreet = false;
-                        break;
-                    }
+        for (int i = 0; i <= newCards.size() - 5; i++) {
+            List<Card> street = new ArrayList<>();
+            street.add(newCards.get(i));
+
+            for (int j = 1; j < 5; j++) {
+                if (newCards.get(i + j).getNominal() == newCards.get(i + j - 1).getNominal() + 1) {
+                    street.add(newCards.get(i + j));
+                } else {
+                    break;
                 }
-                if (isStreet) {
-                    for (int j = i; j < i + 5; j++) {
-                        if (player == Player.PLAYER_ONE) {
-                            newCards.get(j).setInComboFirstPlayer(true);
-                        } else {
-                            newCards.get(j).setInComboSecondPlayer(true);
-                        }
-                    }
-                    return true;
-                }
+            }
+
+
+            if (street.size() == 5) {
+                possibleStreets.add(street);
             }
         }
 
-        return false;
+        if (possibleStreets.isEmpty()) {
+            return false;
+        }
+
+        possibleStreets.sort((a, b) -> Integer.compare(b.get(4).getNominal(), a.get(4).getNominal()));
+        List<Card> topStreet = possibleStreets.get(0);
+
+        for (Card card : topStreet) {
+            if (player == Player.PLAYER_ONE) {
+                card.setInComboFirstPlayer(true);
+            } else {
+                card.setInComboSecondPlayer(true);
+            }
+        }
+
+        return true;
     }
+
 
     boolean isSet(Card[] cards, Player player) {
         for (int i = 0; i < cards.length - 2; i++) {
@@ -262,19 +265,19 @@ public class Solver {
             }
         }
         int iter = 0;
-        for(int i = cards.length - 1; i > 0; i--){
+        for (int i = cards.length - 1; i > 0; i--) {
 
-            if(player == Player.PLAYER_ONE){
-                if(cards[i].isInComboFirstPlayer() && iter < 4) {
+            if (player == Player.PLAYER_ONE) {
+                if (cards[i].isInComboFirstPlayer() && iter < 4) {
                     iter++;
-                }else if(cards[i].isInComboFirstPlayer() && iter > 3) {
+                } else if (cards[i].isInComboFirstPlayer() && iter > 3) {
                     cards[i].setInComboFirstPlayer(false);
                     iter++;
                 }
-            }else if(player == Player.PLAYER_TWO){
-                if(cards[i].isInComboSecondPlayer() && iter < 4) {
+            } else if (player == Player.PLAYER_TWO) {
+                if (cards[i].isInComboSecondPlayer() && iter < 4) {
                     iter++;
-                }else if(cards[i].isInComboSecondPlayer() && iter > 3) {
+                } else if (cards[i].isInComboSecondPlayer() && iter > 3) {
                     cards[i].setInComboSecondPlayer(false);
                     iter++;
                 }
