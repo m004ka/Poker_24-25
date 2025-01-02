@@ -78,7 +78,6 @@ public class DealerImpl implements Dealer {
         Card[] cards2 = parseToCards(board, Player.PLAYER_TWO);
 
 
-
         if (!Stream.of(cards1).allMatch(Card::isOnBoard))
             throw new InvalidPokerBoardException("Не корректные карты на столе");
         if (!Stream.of(cards2).allMatch(Card::isOnBoard))
@@ -169,12 +168,14 @@ public class DealerImpl implements Dealer {
                 j++;
             }
         }
-        if(kicker1.isEmpty() && kicker2.isEmpty()){
+        if (kicker1.isEmpty() && kicker2.isEmpty()) {
             for (int i = secondPlayer.size() - 1; i != -1; i--) {
-                if (firstPlayer.get(i).getNominal() > secondPlayer.get(i).getNominal()) return PokerResult.PLAYER_ONE_WIN;
-                if (firstPlayer.get(i).getNominal() < secondPlayer.get(i).getNominal()) return PokerResult.PLAYER_TWO_WIN;
+                if (firstPlayer.get(i).getNominal() > secondPlayer.get(i).getNominal())
+                    return PokerResult.PLAYER_ONE_WIN;
+                if (firstPlayer.get(i).getNominal() < secondPlayer.get(i).getNominal())
+                    return PokerResult.PLAYER_TWO_WIN;
             }
-        }else {
+        } else {
             for (int i = kicker1.size() - 1; i != -1; i--) {
                 if (kicker1.get(i).getNominal() > kicker2.get(i).getNominal()) return PokerResult.PLAYER_ONE_WIN;
                 if (kicker1.get(i).getNominal() < kicker2.get(i).getNominal()) return PokerResult.PLAYER_TWO_WIN;
@@ -185,7 +186,7 @@ public class DealerImpl implements Dealer {
 
 
     public PokerResult solverDraw(Card[] player1, Card[] player2) {
-        for (int i = player1.length - 1 ; i != -1 + 2; i--) {
+        for (int i = player1.length - 1; i != -1 + 2; i--) {
             if (player1[i].getNominal() > player2[i].getNominal()) return PokerResult.PLAYER_ONE_WIN;
             if (player1[i].getNominal() < player2[i].getNominal()) return PokerResult.PLAYER_TWO_WIN;
         }
@@ -193,6 +194,7 @@ public class DealerImpl implements Dealer {
     }
 
     Solver solver = new Solver();
+
     public Combination solverCombination(Card[] cards, Player player) {
         return solver.setCombination(cards, player);
     }
